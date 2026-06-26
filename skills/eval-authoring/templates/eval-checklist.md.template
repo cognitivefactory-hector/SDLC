@@ -1,0 +1,20 @@
+# Eval Checklist — {{PROJECT_NAME}}
+
+Scaffolded by eval-authoring. Output evals are in `evals/`; complete these to run them.
+
+## Install & run
+- [ ] `pip install deepeval`
+- [ ] Set the LM-judge API key (e.g. `OPENAI_API_KEY` or your provider's) for GEval/Faithfulness
+- [ ] Seed `evals/dataset.jsonl` with 5–20 real cases (grow from failures)
+- [ ] Replace `run_feature(...)` in the eval test with your system under test
+- [ ] Run: `deepeval test run evals/`
+
+## CI
+- [ ] Add the eval job step (`deepeval test run evals/`) and gate the build on the threshold
+
+## Trajectory evals (only if applicable)
+{{TRAJECTORY_ITEMS}}
+
+## Notes
+- Calibrate LM-as-judge against human review on borderline cases before trusting it.
+- Re-run `eval-authoring` in AUDIT mode after adding cases to refresh this checklist.

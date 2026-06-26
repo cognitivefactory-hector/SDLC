@@ -1,0 +1,41 @@
+"""DeepEval suite for {{FEATURE_NAME}} — scaffolded by eval-authoring.
+
+Run: deepeval test run evals/
+Grow the dataset in dataset.jsonl from real failures.
+"""
+import json
+import os
+
+import pytest
+from deepeval import assert_test
+from deepeval.metrics import GEval
+from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+
+DATASET = os.path.join(os.path.dirname(__file__), "dataset.jsonl")
+
+
+def load_cases():
+    with open(DATASET) as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
+# Output eval — criteria come from the scored boundary's acceptance intent.
+QUALITY = GEval(
+    name="{{FEATURE_NAME}} quality",
+    criteria="{{ACCEPTANCE_CRITERIA}}",
+    evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
+    threshold=0.8,
+)
+
+
+@pytest.mark.parametrize("case", load_cases())
+def test_{{FEATURE_SLUG}}_output(case):
+    # Replace run_feature(...) with a call to your system under test.
+    output = run_feature(case["input"])
+    tc = LLMTestCase(input=case["input"], actual_output=output)
+    assert_test(tc, [QUALITY])
+
+
+# Trajectory eval (only if eval kind is trajectory AND observability is wired):
+#   from deepeval.metrics import TaskCompletionMetric, ToolCorrectnessMetric
+#   build the LLMTestCase from the captured trace (tools_called / steps), then assert_test.
