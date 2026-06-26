@@ -1,5 +1,6 @@
 {
   "enabledPlugins": {
-    "langfuse-observability@claude-plugins-official": true
+    "langfuse-observability@claude-plugins-official": true,
+    "sentry@claude-plugins-official": true
   }
 }
