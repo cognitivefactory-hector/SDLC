@@ -1,0 +1,23 @@
+# Domain Boundaries — {{PROJECT_NAME}}
+
+What is deterministic (typed/validated) vs scored (evals), and where non-determinism is
+allowed. Produced by nondeterministic-design; feeds eval-authoring (scored items) and TDD
+(layer-3 invariants).
+
+## Feature: {{FEATURE_NAME}}
+
+| Layer | Decision | Deterministic / Scored |
+|---|---|---|
+| 1. Input contract | {{INPUT_CONTRACT}} | Deterministic |
+| 2. Core (generation) | {{CORE_DESCRIPTION}} | Scored |
+| 3. Output validation | {{OUTPUT_INVARIANTS}} | Deterministic |
+
+### Scored boundary — acceptance criteria (for eval-authoring)
+- What good looks like: {{ACCEPTANCE_INTENT}}
+- Eval kind: {{EVAL_KIND}}   (output | trajectory; trajectory needs observability / item 7)
+
+### Layer-3 invariants (for TDD)
+{{INVARIANTS_LIST}}
+
+---
+(Repeat the "Feature" block per non-deterministic touchpoint.)

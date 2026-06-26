@@ -18,7 +18,7 @@ development life cycle from *The New SDLC with Vibe Coding* (Google, 2026).
 | `preflight` | SDLC readiness gate — bookends the build (opens at brainstorm, checks before implementation) | say `preflight` |
 | `context-engineering` | Generates/audits `AGENTS.md`/`CLAUDE.md` + a static-vs-dynamic context map | say `context-engineering` |
 | `harness-setup` | Configures Tools/MCP, sandboxes, guardrails (via `hookify`), observability | say `harness-setup` |
-| `nondeterministic-design` | *(planned)* DDD/BDD containment — domain boundaries, what's typed vs scored | — |
+| `nondeterministic-design` | DDD/BDD containment — domain boundaries, what's typed vs scored (eval targets) | say `nondeterministic-design` |
 | `eval-authoring` | *(planned)* output + trajectory evals wired into CI | — |
 
 ## Install the skills on another computer
