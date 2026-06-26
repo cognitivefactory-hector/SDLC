@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "langfuse-observability@claude-plugins-official": true
+  }
+}

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observability &amp; Testing — Filling the Maintenance Gap</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --ink:#1f2329; --muted:#5f6571;
+    --line:#e4e7ec; --accent:#1a73e8; --accent2:#34a853;
+    --warn:#fbbc04; --red:#ea4335; --purple:#673ab7;
+    --code:#0b6e4f; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;gap:36px}
+  /* Sidebar */
+  nav.toc{
+    position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;
+    width:240px;flex:0 0 240px;padding:32px 0;border-right:1px solid var(--line);
+  }
+  nav.toc h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:24px 0 8px}
+  nav.toc a{display:block;color:var(--muted);text-decoration:none;font-size:14px;padding:5px 10px;border-radius:6px;border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--ink);background:#eef1f5}
+  nav.toc a.lead{color:var(--ink);font-weight:600}
+  /* Main */
+  main{flex:1 1 auto;min-width:0;padding:40px 0 90px}
+  header.hero{padding:8px 0 28px;border-bottom:1px solid var(--line);margin-bottom:32px}
+  .kicker{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:34px;line-height:1.2;margin:8px 0 10px;letter-spacing:-.02em}
+  .lede{color:var(--muted);font-size:17px;max-width:70ch}
+  h2{font-size:25px;margin:48px 0 6px;letter-spacing:-.01em;scroll-margin-top:20px}
+  h2 .num{color:var(--accent);font-weight:800;margin-right:10px}
+  h3{font-size:18px;margin:28px 0 6px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  p{margin:12px 0}
+  code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:#eef1f5;color:var(--code);padding:1px 6px;border-radius:5px}
+  pre{background:#1e2430;color:#e6edf3;border-radius:12px;padding:16px 18px;overflow-x:auto;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;margin:16px 0;border:1px solid #2b3340}
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+  pre .c{color:#7d8590}
+  pre .k{color:#ff7b72}
+  pre .s{color:#a5d6ff}
+  pre .f{color:#d2a8ff}
+  a{color:var(--accent)}
+  /* Cards & grid */
+  .grid{display:grid;gap:16px;margin:18px 0}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+  .card h3{margin-top:0}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:20px;vertical-align:middle}
+  .pill.have{background:#e6f4ea;color:#137333}
+  .pill.add{background:#fef7e0;color:#a56300}
+  .pill.opt{background:#e8eaed;color:#5f6571}
+  .pill.det{background:#e8f0fe;color:#1a56c4}
+  .pill.eval{background:#f3e8fd;color:#6a1bb5}
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14.5px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f1f3f6;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  tr:last-child td{border-bottom:none}
+  td strong{color:var(--ink)}
+  /* Callout */
+  .callout{border-radius:12px;padding:16px 20px;margin:20px 0;border:1px solid var(--line);background:#fff}
+  .callout.tip{background:#e8f0fe;border-color:#c6dafc}
+  .callout.warn{background:#fef7e0;border-color:#fde293}
+  .callout.key{background:#e6f4ea;border-color:#b7e1c4}
+  .callout b{display:block;margin-bottom:4px}
+  /* Spectrum bar */
+  .spectrum{height:14px;border-radius:8px;margin:14px 0 4px;background:linear-gradient(90deg,#ea4335,#fbbc04,#1a73e8)}
+  .spectrum-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
+  /* Steps */
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0}
+  ol.steps li{position:relative;padding:14px 16px 14px 56px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;box-shadow:var(--shadow)}
+  ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+  ul.tight{margin:8px 0}
+  ul.tight li{margin:5px 0}
+  .muted{color:var(--muted)}
+  footer{border-top:1px solid var(--line);margin-top:60px;padding-top:22px;color:var(--muted);font-size:13.5px}
+  footer a{color:var(--accent);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  .tag{font-size:12px;color:var(--muted)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:6px 0 0}
+  .legend span{display:flex;align-items:center;gap:6px}
+  hr.soft{border:none;border-top:1px solid var(--line);margin:34px 0}
+  /* Shell model diagram */
+  .shell{display:flex;align-items:stretch;gap:0;margin:20px 0 6px;flex-wrap:wrap}
+  .shell-box{flex:1 1 0;min-width:180px;border-radius:12px;padding:16px;text-align:center;border:2px solid}
+  .shell-box b{display:block;font-size:15px;margin-bottom:6px}
+  .shell-box small{color:var(--muted);font-size:12.5px;line-height:1.4;display:block}
+  .shell-box.det{background:#e8f0fe;border-color:#a8c7fa}
+  .shell-box.core{background:#f3e8fd;border-color:#d3a8f5}
+  .shell .arrow{display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--muted);padding:0 12px;flex:0 0 auto}
+  @media(max-width:760px){.shell .arrow{transform:rotate(90deg);width:100%;padding:6px 0}}
+  .wall-tag{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="toc">
+    <h4>Contents</h4>
+    <a class="lead" href="#now">0 · Your current toolbox</a>
+    <a href="#gap">1 · The maintenance gap</a>
+    <a href="#obs-components">&nbsp;&nbsp;Observability components</a>
+    <a href="#obs-tools">&nbsp;&nbsp;Tools &amp; MCP servers</a>
+    <a href="#obs-stack">&nbsp;&nbsp;Recommended stack</a>
+    <a class="lead" href="#testing">2 · Testing: tests vs evals</a>
+    <a href="#two-axes">&nbsp;&nbsp;The two-axis model</a>
+    <a href="#tdd-fit">&nbsp;&nbsp;Where your TDD fits</a>
+    <a href="#evals-how">&nbsp;&nbsp;How to add evals</a>
+    <a href="#test-tools">&nbsp;&nbsp;Tools &amp; MCP servers</a>
+    <a class="lead" href="#ndl">3 · Non-deterministic design</a>
+    <a href="#shell-model">&nbsp;&nbsp;The shell model</a>
+    <a href="#bdd-ddd">&nbsp;&nbsp;BDD &amp; DDD mapping</a>
+    <a href="#faq-eval">&nbsp;&nbsp;Is an FAQ an eval?</a>
+    <a href="#code-marriage">&nbsp;&nbsp;BDD + DeepEval in code</a>
+    <a href="#ddd-shell">&nbsp;&nbsp;DDD shell in code</a>
+    <a href="#reading">&nbsp;&nbsp;Reading list</a>
+    <a href="#anthropic-map">&nbsp;&nbsp;Google &harr; Anthropic</a>
+    <a class="lead" href="#path">4 · A starter path</a>
+    <a href="#sources">Sources</a>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="kicker">Filling the gap in "The New SDLC with Vibe Coding"</div>
+      <h1>Observability &amp; Testing for an Agentic Workflow</h1>
+      <p class="lede">The paper names observability as one of six harness components but never expands it, and it splits "testing" into <strong>deterministic tests</strong> and <strong>non-deterministic evaluations</strong> without telling you how to build either. This fills both gaps — mapped to how <em>you</em> actually work: prompt&nbsp;+&nbsp;Claude&nbsp;Code&nbsp;+&nbsp;superpowers/brainstorming.</p>
+    </header>
+
+    <!-- ============ SECTION 0 ============ -->
+    <h2 id="now"><span class="num">0</span>Your current toolbox</h2>
+    <p class="sub">Before adding anything, here's what you already have wired into this Claude Code session — so we only add what's genuinely missing.</p>
+
+    <div class="legend">
+      <span><span class="pill have">have</span> already in your setup</span>
+      <span><span class="pill add">add</span> recommended to add</span>
+      <span><span class="pill opt">optional</span> nice-to-have</span>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>MCP servers you have <span class="pill have">have</span></h3>
+        <ul class="tight">
+          <li><strong>context7</strong> — live, version-accurate docs for any library/framework. Use it instead of trusting memory on API syntax.</li>
+          <li><strong>chrome-devtools</strong> — drive a real browser: performance traces, Lighthouse, network &amp; console inspection. This is <em>runtime observability for the front end you build</em>.</li>
+          <li><strong>playwright</strong> — browser automation for end-to-end tests.</li>
+          <li><strong>Google Drive</strong> — read/search/create docs.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Skills you drive it with <span class="pill have">have</span></h3>
+        <ul class="tight">
+          <li><strong>superpowers/brainstorming</strong> — your front door to any new feature.</li>
+          <li><strong>test-driven-development</strong> — the deterministic half of testing (see §2).</li>
+          <li><strong>systematic-debugging</strong>, <strong>verification-before-completion</strong>, <strong>code-review</strong>, <strong>verify</strong>, <strong>run</strong>.</li>
+          <li><strong>deep-research</strong> — multi-source fact-checked reports.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <b>The honest gap</b>
+      Notice what's <em>not</em> in that list: nothing captures <strong>traces of the agent's own behavior</strong>, <strong>token/cost/latency metering</strong>, or <strong>non-deterministic quality scoring</strong>. Your tooling can observe the <em>app you ship</em> (chrome-devtools) but not the <em>agent that builds and maintains it</em>. That is exactly the maintenance/observability hole you're feeling.
+    </div>
+
+    <!-- ============ SECTION 1 ============ -->
+    <h2 id="gap"><span class="num">1</span>The maintenance gap = observability</h2>
+    <p class="sub">The paper's thesis is <strong>Agent = Model + Harness</strong>, and "most agent failures are configuration failures, not model failures" (p.31). That claim only holds if you can <em>see</em> what the harness did. Observability is how maintenance stops being guesswork.</p>
+
+    <h3 id="obs-components">The components of an observability layer</h3>
+    <p>The paper lists only "logs, traces, evaluations, cost and latency metering" (p.28). Here's the full set, with the two rows teams usually miss highlighted.</p>
+
+    <table>
+      <thead><tr><th style="width:26%">Component</th><th>What it captures</th><th style="width:22%">Why it matters for maintenance</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Tracing (agent loop)</strong></td><td>One span per <code>perceive → plan → act → observe</code> step; nested tool calls and sub-agent hand-offs.</td><td>Reconstruct <em>what the agent did</em>, step by step.</td></tr>
+        <tr><td><strong>Trajectory capture</strong> ⭐</td><td>The full <em>sequence</em> of tool calls + intermediate reasoning, not just the final output.</td><td>Enables <em>trajectory evals</em> (p.22) — catching a right answer reached the wrong way.</td></tr>
+        <tr><td><strong>Context / prompt snapshots</strong> ⭐</td><td>What actually entered the context window each turn: rules, retrieved RAG docs, which skills fired.</td><td>Most failures = "a vague rule, an absent guardrail, or a context window stuffed with noise" (p.31). You can only find these if you logged the assembled context.</td></tr>
+        <tr><td><strong>Structured logs</strong></td><td>Every tool call with inputs/outputs/errors; hook &amp; guardrail firings.</td><td>The audit trail behind any decision.</td></tr>
+        <tr><td><strong>Cost &amp; latency metrics</strong></td><td>Tokens per task/session, latency per step, retry &amp; loop-iteration counts.</td><td>Ties straight to the paper's CapEx/OpEx economics; a runaway self-correction loop shows up here first.</td></tr>
+        <tr><td><strong>Evaluations as telemetry</strong></td><td>Output &amp; trajectory eval scores emitted continuously (see §2).</td><td>Quality becomes a metric you can alert on, not a vibe.</td></tr>
+        <tr><td><strong>Drift detection</strong></td><td>Baseline behavior vs. current after a model/prompt/context change; new failure modes on prod traffic.</td><td>Catches the agent "quietly drifting" (p.28) — the core maintenance risk.</td></tr>
+        <tr><td><strong>Production feedback loop</strong></td><td>Deployment health, rollback triggers, prod behavior routed back into dev decisions.</td><td>The paper calls this out (p.23) and it's the part most teams skip.</td></tr>
+        <tr><td><strong>Alerting &amp; audit</strong></td><td>Thresholds on cost/latency/error-rate/eval-score; durable trail to reconstruct any decision.</td><td>Turns "the agent broke" into "the harness was misconfigured <em>here</em>."</td></tr>
+      </tbody>
+    </table>
+    <p class="tag">⭐ = the two components missing from most setups (and from the paper's one-liner). They're what turn observability from "app monitoring" into "agent monitoring."</p>
+
+    <h3 id="obs-tools">Tools &amp; MCP servers available to you</h3>
+    <p>Two families. <strong>(A) LLM/agent observability</strong> — watches the agent. <strong>(B) Infra/app observability</strong> — watches the running service. Both now ship MCP servers, so Claude Code can query your traces and errors without leaving the editor.</p>
+
+    <h3>A · Agent / LLM observability</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Best for</th><th>MCP?</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><strong>Langfuse</strong></td><td>Open-source leader, self-hostable, framework-agnostic via OpenTelemetry. The safe default if you want to own your data.</td><td>Yes</td><td><span class="pill add">add</span></td></tr>
+        <tr><td><strong>Arize Phoenix</strong></td><td>Open-source, strongest on <em>evals + drift detection + embeddings</em> — i.e. the maintenance signals. Pairs observability and evaluation in one tool.</td><td>Yes</td><td><span class="pill add">add</span></td></tr>
+        <tr><td><strong>LangSmith</strong></td><td>Deepest traces (node-by-node state diffs, replay-against-new-model). Ships an MCP server for querying traces. Best if you lean LangChain/LangGraph.</td><td>Yes</td><td><span class="pill opt">optional</span></td></tr>
+        <tr><td><strong>Helicone</strong></td><td>Drop-in proxy — simplest possible install (one base-URL swap) for cost &amp; latency metering.</td><td>Yes</td><td><span class="pill opt">optional</span></td></tr>
+        <tr><td><strong>Braintrust</strong></td><td>Connects the whole eval lifecycle (datasets → scoring → prod monitoring → CI gating) in one system. More of a platform commitment.</td><td>Yes</td><td><span class="pill opt">optional</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>B · Infra / app &amp; MCP-server observability</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Best for</th><th>MCP?</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><strong>OpenTelemetry (OTel)</strong></td><td>The vendor-neutral wire format underneath everything above. Instrument once, send anywhere. There are now OTel MCP semantic conventions for agents.</td><td>—</td><td><span class="pill add">add</span></td></tr>
+        <tr><td><strong>Sentry</strong></td><td>Error tracking + <em>MCP-server monitoring</em> (one line to instrument a JS MCP server; tracks tool usage, traffic, performance). Lets the agent debug prod errors from the editor.</td><td>Yes</td><td><span class="pill add">add</span></td></tr>
+        <tr><td><strong>Grafana</strong></td><td>Metrics/logs/traces dashboards; Grafana 13 added an AI-observability MCP server exposing Prometheus + OTel traces.</td><td>Yes</td><td><span class="pill opt">optional</span></td></tr>
+        <tr><td><strong>chrome-devtools</strong> (you have this)</td><td>Front-end runtime: perf traces, Lighthouse, network/console. Your existing runtime-observability tool for the UI.</td><td>Yes</td><td><span class="pill have">have</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="obs-stack">Recommended stack for <em>your</em> workflow</h3>
+    <p>You're a prompt-first, single-operator workflow — not a platform team. Optimize for self-hostable + open-source + an MCP server so Claude Code can read your own traces back to you.</p>
+    <div class="grid g3">
+      <div class="card"><h3>Agent layer</h3><p><strong>Langfuse</strong> (self-hosted) or <strong>Phoenix</strong> if you want evals + drift in the same tool. Wire it through <strong>OpenTelemetry</strong>.</p></div>
+      <div class="card"><h3>App layer</h3><p><strong>Sentry</strong> for errors + MCP-server monitoring. You already have <strong>chrome-devtools</strong> for the front end.</p></div>
+      <div class="card"><h3>Glue</h3><p>Add each tool's <strong>MCP server</strong> to Claude Code so you can ask "why did the last run cost 40k tokens?" in plain prompt.</p></div>
+    </div>
+    <div class="callout key">
+      <b>The one-line test of whether you've closed the gap</b>
+      After a bad run, can you answer <em>"what context went in, what path did the agent take, what did it cost, and how does that compare to last week?"</em> — without re-running it? If yes, observability is in place. If no, you're still maintaining blind.
+    </div>
+
+    <!-- ============ SECTION 2 ============ -->
+    <h2 id="testing"><span class="num">2</span>Testing: deterministic tests <em>and</em> evals</h2>
+    <p class="sub">You're doing TDD, which is great — but TDD only covers <em>half</em> of what the paper means by "testing." The paper's key line (p.14–15): <em>"Without both, the practice is always vibe coding, regardless of how sophisticated the prompts are."</em></p>
+
+    <h3 id="two-axes">The two-axis model</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h3><span class="pill det">deterministic</span> Tests</h3>
+        <p class="muted" style="margin-top:4px">Verify the parts that have one correct answer.</p>
+        <ul class="tight">
+          <li>"Given this input, the function returns exactly that output."</li>
+          <li>Checked by <strong>code</strong> — pass/fail, no judgment.</li>
+          <li>Unit, integration, e2e, property-based.</li>
+          <li><strong>This is what your TDD already does.</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="pill eval">non-deterministic</span> Evaluations</h3>
+        <p class="muted" style="margin-top:4px">Verify the parts with no single right answer.</p>
+        <ul class="tight">
+          <li>"Did the agent take a sane path, choose the right tools, and produce output that meets the quality bar?"</li>
+          <li>Checked by <strong>labelled datasets, scoring rubrics, and LM judges</strong>.</li>
+          <li>Output evals (the artifact) + trajectory evals (the path).</li>
+          <li><strong>This is the half you're missing.</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="spectrum"></div>
+    <div class="spectrum-labels"><span>Fully deterministic — use tests</span><span>Fully judgment-based — use evals</span></div>
+    <p>Most real features live in the middle. A rule of thumb: <strong>if you can write the assertion as <code>==</code>, it's a test. If you'd need a human to say "yeah, that's good enough," it's an eval.</strong></p>
+
+    <table>
+      <thead><tr><th>Dimension</th><th>Test (deterministic)</th><th>Eval (non-deterministic)</th></tr></thead>
+      <tbody>
+        <tr><td>Question it answers</td><td>Is the output <em>correct</em>?</td><td>Is the output <em>good</em>, and was the <em>path</em> sound?</td></tr>
+        <tr><td>Checked by</td><td>Code assertions</td><td>Labelled data, rubrics, LM-as-judge</td></tr>
+        <tr><td>Result</td><td>Binary pass/fail</td><td>A score / graded distribution</td></tr>
+        <tr><td>Good for</td><td>Logic, parsing, calculations, API contracts, regressions</td><td>Summaries, classifications, RAG answers, agent tool-use, "does it look right"</td></tr>
+        <tr><td>Your current coverage</td><td><span class="pill have">strong (TDD)</span></td><td><span class="pill add">missing</span></td></tr>
+        <tr><td>In CI as a gate?</td><td>Always</td><td>Yes — fail the build if eval score drops below threshold</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="tdd-fit">Where your TDD fits (don't drop it)</h3>
+    <p>TDD stays exactly as it is for deterministic logic — it's still the right discipline and the superpowers TDD skill still applies. What changes: for any feature where the output is <em>generated, fuzzy, or AI-produced</em>, a passing unit test is necessary but <strong>not sufficient</strong>. The paper's warning (p.34): AI errors now "look right and may even pass basic tests." Evals are what catch the failures that slip past green tests.</p>
+    <div class="callout tip">
+      <b>Mental model</b>
+      <strong>Tests</strong> guard the <em>code you can pin down</em>. <strong>Evals</strong> guard the <em>behavior you can only describe</em>. TDD is your test discipline; you now need an eval discipline next to it — same idea (write the check first, let it drive the work), different checker.
+    </div>
+
+    <h3 id="evals-how">How to add evals — the practical loop</h3>
+    <ol class="steps">
+      <li><strong>Build a small dataset.</strong> 20–50 representative inputs with either a "golden" expected output or a rubric of what "good" means. Start tiny; grow it from real failures.</li>
+      <li><strong>Pick scorers.</strong> Mix cheap deterministic checks (regex, JSON-schema, exact-match where possible) with <strong>LM-as-judge</strong> for the fuzzy parts (relevance, faithfulness, task completion, tool correctness).</li>
+      <li><strong>Calibrate the judge.</strong> LM-as-judge alone is unreliable — spot-check its scores against your own review on borderline cases until you trust it. The 2026 consensus: <em>calibration is what makes LM-judges scale.</em></li>
+      <li><strong>Gate CI on it.</strong> Run the eval suite on every change; fail the build if the score regresses past a threshold — exactly like a test.</li>
+      <li><strong>Close the loop with observability.</strong> Mine §1 production traces for new failure modes → add them to the dataset → re-run. This is the paper's "continuous quality flywheel" (p.23).</li>
+    </ol>
+
+    <h3 id="test-tools">Tools &amp; MCP servers for testing/evals</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Layer</th><th>Best for</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><strong>pytest / Jest / Vitest</strong></td><td><span class="pill det">tests</span></td><td>Your deterministic TDD. Keep as-is.</td><td><span class="pill have">have</span></td></tr>
+        <tr><td><strong>Playwright</strong></td><td><span class="pill det">tests</span></td><td>Deterministic end-to-end browser tests. You have the MCP.</td><td><span class="pill have">have</span></td></tr>
+        <tr><td><strong>DeepEval</strong></td><td><span class="pill eval">evals</span></td><td>"pytest for LLM output" — 50+ metrics incl. hallucination, relevancy, and agent metrics (task completion, tool correctness, step efficiency). Easiest on-ramp from a TDD mindset.</td><td><span class="pill add">add</span></td></tr>
+        <tr><td><strong>promptfoo</strong></td><td><span class="pill eval">evals</span></td><td>Config-driven evals + red-teaming/security in CI. (Acquired by OpenAI, Mar 2026.)</td><td><span class="pill add">add</span></td></tr>
+        <tr><td><strong>Ragas</strong></td><td><span class="pill eval">evals</span></td><td>If you build RAG — faithfulness, context precision/recall.</td><td><span class="pill opt">optional</span></td></tr>
+        <tr><td><strong>Phoenix / Braintrust / LangSmith</strong></td><td><span class="pill eval">evals</span></td><td>Platform side: dataset management, human annotation, regression dashboards. Same tools as §1 — observability and evals converge here.</td><td><span class="pill opt">optional</span></td></tr>
+      </tbody>
+    </table>
+    <div class="callout key">
+      <b>The 2026 division of labor</b>
+      Experienced teams run <strong>two</strong> eval tools: a lightweight one for CI gating (<strong>DeepEval</strong>, Ragas, or promptfoo) + a platform for annotation &amp; dashboards (<strong>Braintrust</strong>, LangSmith, or Phoenix). For you, start with DeepEval alone and add a platform only when the dataset outgrows your editor.
+    </div>
+
+    <!-- ============ SECTION 3 ============ -->
+    <h2 id="ndl"><span class="num">3</span>Designing non-deterministic logic</h2>
+    <p class="sub">You don't make an LLM deterministic — you <strong>contain</strong> it. Good design wraps a small non-deterministic core in deterministic shells, and validates everything that crosses the boundary. BDD and DDD each build a different wall of that box. Neither replaces the other.</p>
+
+    <h3 id="shell-model">The shell model</h3>
+    <div class="shell">
+      <div class="shell-box det"><b>Deterministic input contract</b><small>Typed inputs, ubiquitous language, schema validation</small></div>
+      <div class="arrow">&rarr;</div>
+      <div class="shell-box core"><b>Non-deterministic LLM core</b><small>Generates fuzzy output — this is what <em>evals</em> score</small></div>
+      <div class="arrow">&rarr;</div>
+      <div class="shell-box det"><b>Deterministic output validation</b><small>Domain invariants + guardrails reject bad output</small></div>
+    </div>
+    <p class="tag" style="text-align:center"><strong>DDD</strong> builds the two outer shells · <strong>evals</strong> score the core · <strong>BDD</strong> describes what the whole box should do</p>
+
+    <div class="callout key">
+      <b>The one idea to keep</b>
+      Push the deterministic boundary <em>inward</em> until the non-deterministic part is as small as possible, then validate everything crossing it. A negative-total <code>Order</code> can never exist no matter what the model emits — because the domain boundary rejects it. Probability handles the middle; types and rules handle the edges.
+    </div>
+
+    <h3 id="bdd-ddd">Will BDD and DDD improve non-deterministic logic?</h3>
+    <p>Yes — but on different walls, and neither makes the model itself more reliable. They make the <em>system</em> reliable around it.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>BDD &mdash; the <em>specification</em> wall</h3>
+        <p class="muted" style="margin-top:2px">Behavior-Driven Development</p>
+        <p>BDD's real gift isn't Gherkin syntax — it's <strong>specification by example</strong>: pin behavior down with concrete input&rarr;expected-behavior examples agreed <em>before</em> building.</p>
+        <ul class="tight">
+          <li>A BDD scenario <em>is</em> an eval case. The <code>Then</code> clauses are your rubric.</li>
+          <li><strong>The twist:</strong> swap the deterministic assertion (<code>Then total == $42</code>) for a graded LM-judge assertion (<code>Then politeness &ge; 0.8</code>).</li>
+          <li>Improves <em>how you capture intent for fuzzy behavior</em> — the weak point in evals.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>DDD &mdash; the <em>containment</em> wall</h3>
+        <p class="muted" style="margin-top:2px">Domain-Driven Design</p>
+        <p>DDD is the higher-leverage of the two here, because it <strong>shrinks the non-deterministic surface</strong>.</p>
+        <ul class="tight">
+          <li><strong>Domain model as a semantic filter:</strong> parse fuzzy text into typed objects; invalid domain entities can't exist — the boundary rejects hallucinations.</li>
+          <li><strong>Bounded contexts decide <em>where</em> non-determinism is allowed</strong> (fuzzy copy = fine; payment math = deterministic code the LLM only triggers).</li>
+          <li><strong>Ubiquitous language = better context engineering</strong> — the rich, grounded context the SDLC paper says agents need.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout tip">
+      <b>The emerging term: DICE</b>
+      Domain-Integrated Context Engineering — the <em>same</em> domain model mediates both what you send <em>into</em> the LLM and what you accept <em>back</em>. It's DDD applied to both walls at once.
+    </div>
+
+    <h3 id="faq-eval">Is an FAQ an eval?</h3>
+    <p>An FAQ is a list of question&rarr;reference-answer pairs — which is exactly a <strong>labelled dataset</strong>, and in BDD terms, "specification by example." But a dataset isn't an eval on its own.</p>
+    <div class="callout key">
+      <b>Eval = dataset + scorer + a run</b>
+      The FAQ is the <em>dataset</em>. Run your agent against the FAQ questions, then <em>score</em> its answers against the FAQ's reference answers (semantic similarity or an LM-judge). <strong>Now</strong> it's an eval. An FAQ sitting in a doc is just a fixture.
+    </div>
+    <p>And an FAQ is one of the <strong>best</strong> starter datasets you can have — the answers are already curated, real, and human-approved. The pipeline is natural: <strong>FAQ entries &rarr; BDD scenarios &rarr; eval cases</strong>. If you have an FAQ, you're already halfway to your first eval suite.</p>
+
+    <h3 id="code-marriage">Is DeepEval part of BDD? Marrying them in code</h3>
+    <p><strong>No</strong> — DeepEval is built on <code>pytest</code> (the TDD/xUnit lineage), not Cucumber/Gherkin (the BDD lineage). It's "pytest for LLM output," structurally closer to your existing TDD. But because both ride on pytest, you can <em>compose</em> them: write BDD scenarios with <code>pytest-bdd</code>, and put a DeepEval LM-judge in the <code>Then</code> step. You get readable, intent-first specs with non-deterministic assertions underneath.</p>
+
+    <pre><code><span class="c"># refund_reply.feature  — the BDD spec (readable by anyone)</span>
+<span class="k">Feature:</span> Refund email replies
+  <span class="k">Scenario:</span> Customer requests a refund on a late order
+    <span class="k">Given</span> a customer email asking for a refund
+    <span class="k">When</span> the agent drafts a reply
+    <span class="k">Then</span> the reply should be polite
+    <span class="k">And</span> the reply should not promise a delivery date</code></pre>
+
+    <pre><code><span class="c"># test_refund_reply.py  — the eval engine behind the Then clauses</span>
+<span class="k">from</span> pytest_bdd <span class="k">import</span> scenarios, given, when, then
+<span class="k">from</span> deepeval.metrics <span class="k">import</span> GEval
+<span class="k">from</span> deepeval.test_case <span class="k">import</span> LLMTestCase, LLMTestCaseParams
+
+scenarios(<span class="s">"refund_reply.feature"</span>)
+
+<span class="f">@given</span>(<span class="s">"a customer email asking for a refund"</span>, target_fixture=<span class="s">"email"</span>)
+<span class="k">def</span> <span class="f">email</span>():
+    <span class="k">return</span> <span class="s">"My order is 2 weeks late. I want a refund."</span>
+
+<span class="f">@when</span>(<span class="s">"the agent drafts a reply"</span>, target_fixture=<span class="s">"reply"</span>)
+<span class="k">def</span> <span class="f">reply</span>(email):
+    <span class="k">return</span> my_agent.draft_reply(email)   <span class="c"># your system under test</span>
+
+<span class="f">@then</span>(<span class="s">"the reply should be polite"</span>)
+<span class="k">def</span> <span class="f">polite</span>(reply):
+    metric = GEval(                                  <span class="c"># LM-as-judge, not ==</span>
+        name=<span class="s">"Politeness"</span>,
+        criteria=<span class="s">"The reply is courteous and non-dismissive."</span>,
+        evaluation_params=[LLMTestCaseParams.ACTUAL_OUTPUT],
+        threshold=<span class="s">0.8</span>,
+    )
+    metric.measure(LLMTestCase(input=<span class="s">""</span>, actual_output=reply))
+    <span class="k">assert</span> metric.is_successful()</code></pre>
+    <p class="tag">BDD gives the <code>Given/When/Then</code> structure and readability · DeepEval's <code>GEval</code> scores the fuzzy clause · your TDD still guards the deterministic core inside <code>draft_reply</code>.</p>
+
+    <h3 id="ddd-shell">The deterministic shell in code (DDD)</h3>
+    <p>The eval scores the <em>core</em>. The DDD shell is what makes a bad core output <strong>impossible to act on</strong>. The LLM emits fuzzy text; you refuse to let it become a domain object unless it satisfies every invariant. A hallucinated order with a negative total doesn't get "caught later" — it <em>cannot be constructed</em>.</p>
+
+    <pre><code><span class="c"># order_domain.py  — the deterministic output-validation wall</span>
+<span class="k">from</span> pydantic <span class="k">import</span> BaseModel, field_validator, model_validator
+<span class="k">from</span> decimal <span class="k">import</span> Decimal
+
+ALLOWED_CURRENCIES = {<span class="s">"USD"</span>, <span class="s">"EUR"</span>, <span class="s">"GBP"</span>}
+
+<span class="k">class</span> <span class="f">LineItem</span>(BaseModel):
+    sku: str
+    quantity: int
+    unit_price: Decimal
+
+    <span class="f">@field_validator</span>(<span class="s">"quantity"</span>)
+    <span class="k">def</span> <span class="f">qty_positive</span>(cls, v):
+        <span class="k">if</span> v &lt;= <span class="s">0</span>:
+            <span class="k">raise</span> ValueError(<span class="s">"quantity must be &gt; 0"</span>)   <span class="c"># invariant</span>
+        <span class="k">return</span> v
+
+<span class="k">class</span> <span class="f">Order</span>(BaseModel):              <span class="c"># the aggregate — the boundary</span>
+    currency: str
+    line_items: list[LineItem]
+    total: Decimal
+
+    <span class="f">@field_validator</span>(<span class="s">"currency"</span>)
+    <span class="k">def</span> <span class="f">known_currency</span>(cls, v):
+        <span class="k">if</span> v <span class="k">not in</span> ALLOWED_CURRENCIES:
+            <span class="k">raise</span> ValueError(<span class="s">f"unsupported currency: {v}"</span>)
+        <span class="k">return</span> v
+
+    <span class="f">@model_validator</span>(mode=<span class="s">"after"</span>)
+    <span class="k">def</span> <span class="f">total_matches_lines</span>(self):
+        computed = sum(li.unit_price * li.quantity <span class="k">for</span> li <span class="k">in</span> self.line_items)
+        <span class="k">if</span> <span class="k">not</span> self.line_items:
+            <span class="k">raise</span> ValueError(<span class="s">"order must have at least one line item"</span>)
+        <span class="k">if</span> computed != self.total:                    <span class="c"># cross-field invariant</span>
+            <span class="k">raise</span> ValueError(<span class="s">f"total {self.total} != computed {computed}"</span>)
+        <span class="k">return</span> self</code></pre>
+
+    <pre><code><span class="c"># the containment loop — fuzzy in, validated-or-rejected out</span>
+<span class="k">from</span> pydantic <span class="k">import</span> ValidationError
+
+<span class="k">def</span> <span class="f">order_from_agent</span>(email: str, max_retries: int = <span class="s">2</span>) -&gt; Order:
+    <span class="k">for</span> attempt <span class="k">in</span> range(max_retries + <span class="s">1</span>):
+        raw = llm.extract_order(email)            <span class="c"># non-deterministic core</span>
+        <span class="k">try</span>:
+            <span class="k">return</span> Order.model_validate_json(raw)    <span class="c"># shell accepts ONLY valid</span>
+        <span class="k">except</span> ValidationError <span class="k">as</span> e:
+            <span class="c"># feed the exact error back — the SDLC paper's self-correct loop</span>
+            email = <span class="s">f"{email}\n\nYour last output was invalid: {e}"</span>
+    <span class="k">raise</span> ValueError(<span class="s">"agent could not produce a valid Order"</span>)  <span class="c"># fail closed</span></code></pre>
+    <p class="tag">No matter what the model emits, downstream code only ever receives a fully-valid <code>Order</code>. The non-deterministic surface shrinks to "did extraction succeed within N tries?" — and the <code>ValidationError</code> becomes the feedback signal that drives the agent's retry loop.</p>
+
+    <div class="callout key">
+      <b>Why this is the higher-leverage move</b>
+      The eval tells you <em>how often</em> the core is good (a quality metric). The DDD shell guarantees that bad output <em>never reaches production</em> (a safety guarantee). You want both — but if you can only build one first, build the shell. A failing eval is a dashboard problem; an unvalidated hallucinated order is an incident.
+    </div>
+
+    <h3 id="reading">Reading list</h3>
+    <p>There's no book literally titled "non-deterministic logic design" — the term isn't established yet. The closest and best single resource, plus the canon for each wall:</p>
+    <div class="grid g2">
+      <div class="card">
+        <h3>📘 Start here</h3>
+        <p><strong>AI Engineering</strong> — Chip Huyen (O'Reilly, 2025). Treats evaluation of non-deterministic, open-ended, multi-step systems as a first-class problem: LM-as-judge, eval-driven development, evaluating agents where "the right answer isn't obvious." This is <em>the</em> book for your question.</p>
+      </div>
+      <div class="card">
+        <h3>📗 Adjacent (same author)</h3>
+        <p><strong>Designing Machine Learning Systems</strong> — Chip Huyen. For the systems, monitoring, and drift-detection angle that pairs with §1 observability.</p>
+      </div>
+      <div class="card">
+        <h3>📙 BDD wall</h3>
+        <p><strong>Specification by Example</strong> — Gojko Adzic (the idea that maps onto eval datasets).<br><strong>BDD in Action</strong> — John Ferguson Smart (the practice).</p>
+      </div>
+      <div class="card">
+        <h3>📕 DDD wall</h3>
+        <p><strong>Domain-Driven Design</strong> — Eric Evans (the "blue book").<br><strong>Implementing Domain-Driven Design</strong> — Vaughn Vernon (the practical follow-up).</p>
+      </div>
+    </div>
+    <div class="callout tip">
+      <b>The synthesis</b>
+      Use <strong>DDD</strong> for the typed boundaries and invariants that catch bad output · use <strong>BDD's specification-by-example</strong> to write eval cases as readable scenarios · use <strong>DeepEval</strong> to score the fuzzy <code>Then</code> clauses · keep <strong>TDD</strong> guarding the deterministic core. Deterministic where you can, scored where you can't, contained at every boundary.
+    </div>
+
+    <h3 id="anthropic-map">Google paper &harr; Anthropic companion posts</h3>
+    <p>Google published one cohesive paper. Anthropic publishes the same ideas as a constellation of practitioner-first engineering posts — deeper and more hands-on, and written about the exact tool you drive (Claude Code). The framing overlaps almost one-to-one. Use this to jump from any Google chapter to its Anthropic counterpart.</p>
+    <table>
+      <thead><tr><th style="width:42%">Chapter in <em>The New SDLC</em></th><th>Closest Anthropic piece</th></tr></thead>
+      <tbody>
+        <tr><td>AI Agents: A Quick Refresher · the agent loop</td><td><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective Agents</a> <span class="tag">(the foundational one)</span></td></tr>
+        <tr><td>Context engineering: the real skill · six context types</td><td><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective Context Engineering for AI Agents</a></td></tr>
+        <tr><td>Agent Skills · static vs. dynamic context</td><td><a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">Equipping Agents for the Real World with Agent Skills</a></td></tr>
+        <tr><td>Harness Engineering: what surrounds the model</td><td><a href="https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents">Effective Harnesses for Long-Running Agents</a> <span class="tag">(same "harness" framing)</span></td></tr>
+        <tr><td>Tools (context type) · implementation</td><td><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Writing Tools for AI Agents</a></td></tr>
+        <tr><td>Coding agents in practice · conductor/orchestrator</td><td><a href="https://code.claude.com/docs/en/best-practices">Best Practices for Claude Code</a></td></tr>
+        <tr><td>The new SDLC · economics · where to start</td><td><a href="https://resources.anthropic.com/hubfs/2026%20Agentic%20Coding%20Trends%20Report.pdf">2026 Agentic Coding Trends Report</a> + <a href="https://resources.anthropic.com/hubfs/Scaling%20agentic%20coding%20across%20your%20organization.pdf">Scaling Agentic Coding Across Your Organization</a></td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <b>If you read one thing next</b>
+      For <em>this</em> guide's topics, the highest-value Anthropic reads are <strong>Effective Context Engineering</strong> (deepens §2&ndash;3) and <strong>Effective Harnesses for Long-Running Agents</strong> (deepens §1 observability). The two PDF reports are the closest format-match to the Google paper itself.
+    </div>
+
+    <!-- ============ SECTION 4 ============ -->
+    <h2 id="path"><span class="num">4</span>A starter path that fits how you work</h2>
+    <p class="sub">You drive everything by prompt + Claude Code. So pick tools with MCP servers and self-hosting, and let the assistant wire them. Smallest first step that closes the most gap:</p>
+    <ol class="steps">
+      <li><strong>Stand up Langfuse (self-hosted) + OpenTelemetry.</strong> Instrument one project. Now every agent run has traces, token cost, and latency. Add the Langfuse MCP server so you can ask "show me the slowest run today" by prompt.</li>
+      <li><strong>Add Sentry</strong> for app errors + MCP-server monitoring — one line, immediate prod visibility, debuggable from the editor.</li>
+      <li><strong>Add DeepEval</strong> next to your existing tests. Write 20 eval cases for your fuzziest feature. Gate CI on the score. You now have <em>both</em> halves of the paper's testing definition.</li>
+      <li><strong>Wire the flywheel:</strong> a weekly prompt — "pull last week's Langfuse traces, cluster failures, propose new DeepEval cases." Observability feeds evals; evals catch drift; drift shows up in observability. That loop <em>is</em> the maintenance phase the paper says you're missing.</li>
+    </ol>
+    <div class="callout tip">
+      <b>One brainstorming session away</b>
+      When you're ready, run your usual <code>brainstorming</code> skill scoped to "add observability + evals to &lt;project&gt;" and hand it this doc. It'll turn step 1–4 into a concrete plan for your actual codebase.
+    </div>
+
+    <footer id="sources">
+      <p><strong>Sources</strong> (verified June 2026)</p>
+      <p>
+        Observability:
+        <a href="https://www.digitalapplied.com/blog/agent-observability-platforms-langsmith-langfuse-arize-2026">LangSmith/Langfuse/Arize comparison 2026</a> ·
+        <a href="https://mlflow.org/top-5-agent-observability-tools/">MLflow — Top 5 agent observability tools</a> ·
+        <a href="https://github.com/arize-ai/phoenix">Arize Phoenix (GitHub)</a> ·
+        <a href="https://www.braintrust.dev/articles/best-llm-tracing-tools-2026">Braintrust — best LLM tracing tools 2026</a> ·
+        <a href="https://blog.sentry.io/introducing-mcp-server-monitoring/">Sentry — MCP server monitoring</a> ·
+        <a href="https://devops.com/grafana-labs-extends-observability-reach-deeper-into-ai/">Grafana 13 AI observability</a> ·
+        <a href="https://www.mintmcp.com/blog/opentelemetry-ai-agents">OpenTelemetry for AI agents (MCP)</a>
+      </p>
+      <p>
+        Testing &amp; evals:
+        <a href="https://deepeval.com/guides/guides-llm-as-a-judge">DeepEval — LLM-as-a-judge 2026</a> ·
+        <a href="https://www.braintrust.dev/articles/deepeval-alternatives-2026">Braintrust — DeepEval alternatives 2026</a> ·
+        <a href="https://inference.net/content/llm-evaluation-tools-comparison/">LLM evaluation tools comparison 2026</a> ·
+        <a href="https://www.braintrust.dev/articles/best-promptfoo-alternatives-2026">promptfoo alternatives 2026</a>
+      </p>
+      <p>
+        Non-deterministic design:
+        <a href="https://www.oreilly.com/library/view/ai-engineering/9781098166298/">AI Engineering — Chip Huyen (O'Reilly)</a> ·
+        <a href="https://dev.to/anna_danilec/deterministic-guardrails-for-non-deterministic-agents-127b">Deterministic guardrails for non-deterministic agents</a> ·
+        <a href="https://nidly.substack.com/p/domain-driven-design-in-the-ai-era">DDD in the AI era (DICE)</a> ·
+        <a href="https://pypi.org/project/pytest-bdd/">pytest-bdd</a> ·
+        <a href="https://deepeval.com/docs/getting-started">DeepEval quickstart</a>
+      </p>
+      <p class="tag">Primary source for framing &amp; page references: <em>The New SDLC with Vibe Coding</em> — Osmani, Saboo, Kartakis (Google, May 2026).</p>
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>

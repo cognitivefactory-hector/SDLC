@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDLC Preflight Checklist</title>
+<style>
+  :root{
+    --ink:#1f2329;--muted:#5f6571;--line:#d8dce2;--bg:#fff;
+    --req:#137333;--rec:#a56300;--no:#9aa0a6;--accent:#1a73e8;--red:#c5221f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef1f5;color:var(--ink);
+    font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .page{max-width:920px;margin:18px auto;background:var(--bg);padding:30px 36px;
+    border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;
+    border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:16px}
+  h1{font-size:23px;margin:0;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .trigger{flex:0 0 auto;text-align:center;border:2px solid var(--accent);border-radius:10px;
+    padding:8px 16px;background:#e8f0fe}
+  .trigger .word{font-size:20px;font-weight:800;letter-spacing:.04em;color:var(--accent)}
+  .trigger .cap{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block}
+  /* Tiers */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px}
+  .tier{border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+  .tier b{font-size:13px}
+  .tier.p b{color:var(--no)} .tier.s b{color:var(--rec)} .tier.r b{color:var(--req)}
+  .tier small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  thead th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+    border-bottom:1.5px solid var(--ink)}
+  th.t,td.t{text-align:center;width:80px}
+  td.n{width:26px;color:var(--muted);font-variant-numeric:tabular-nums}
+  td.chk{width:30px;text-align:center}
+  input[type=checkbox]{width:17px;height:17px;cursor:pointer;accent-color:var(--accent)}
+  .item b{display:block}
+  .item small{color:var(--muted);font-size:11.5px}
+  .mark{font-size:15px;font-weight:700}
+  .req{color:var(--req)} .rec{color:var(--rec)} .no{color:var(--no)}
+  .star{color:var(--accent);font-weight:700}
+  /* Footer blocks */
+  .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:18px}
+  .box{border:1px solid var(--line);border-radius:8px;padding:11px 14px}
+  .box h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .box ul{margin:0;padding-left:18px}
+  .box li{margin:4px 0;font-size:12.5px}
+  .verdict{display:flex;flex-direction:column;gap:7px}
+  .v{display:flex;align-items:center;gap:9px;font-size:12.5px}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .go{background:var(--req)} .gap{background:var(--rec)} .stop{background:var(--red)}
+  .legend{font-size:11.5px;color:var(--muted);margin:10px 0 0}
+  .legend span{margin-right:14px;white-space:nowrap}
+  /* Bookend flow strip */
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 16px;
+    padding:9px 12px;background:#f6f8fb;border:1px solid var(--line);border-radius:8px}
+  .flow .step{font-size:11.5px;color:var(--muted);padding:4px 8px;border-radius:6px;background:#fff;border:1px solid var(--line)}
+  .flow .step small{display:block;font-size:10px;color:var(--muted)}
+  .flow .step.accent{border-color:var(--accent);background:#e8f0fe;color:var(--accent);font-weight:700}
+  .flow .step.accent small{color:#5a7fc0;font-weight:400}
+  .flow .ar{color:var(--no);font-size:13px}
+  @media print{
+    body{background:#fff}
+    .page{box-shadow:none;margin:0;max-width:none;border-radius:0;padding:0}
+    @page{margin:14mm}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>SDLC Preflight Checklist</h1>
+      <div class="sub">Run this on yourself before implementation &mdash; the engineering-leader go/no-go.</div>
+    </div>
+    <div class="trigger">
+      <span class="cap">Say the word</span>
+      <span class="word">PREFLIGHT</span>
+      <span class="cap">to run the gate</span>
+    </div>
+  </header>
+
+  <div class="flow">
+    <span class="step accent">PREFLIGHT &middot; open<small>set tier + agenda</small></span>
+    <span class="ar">&rarr;</span>
+    <span class="step">brainstorm</span>
+    <span class="ar">&rarr;</span>
+    <span class="step">context &middot; harness &middot; design &middot; evals</span>
+    <span class="ar">&rarr;</span>
+    <span class="step accent">PREFLIGHT &middot; check<small>GO / GAPS / NOT-READY</small></span>
+    <span class="ar">&rarr;</span>
+    <span class="step">implement</span>
+  </div>
+
+  <div class="tiers">
+    <div class="tier p"><b>Prototype</b><small>Throwaway, personal, no real users. Vibe coding is fine.</small></div>
+    <div class="tier s"><b>Structured</b><small>Feature in a real codebase, internal tool, low stakes.</small></div>
+    <div class="tier r"><b>Production</b><small>Deployed, multi-user, or touches money / PII / auth.</small></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th></th><th class="n">#</th><th>Component &mdash; evidence that it's in place</th>
+        <th class="t">Proto</th><th class="t">Struct</th><th class="t">Prod</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">1</td>
+        <td class="item"><b>Spec / intent written</b><small>A clear spec exists (from brainstorming) &mdash; not just a vibe.</small></td>
+        <td class="t"><span class="mark rec">&#9682;</span></td><td class="t"><span class="mark req">&#9679;</span></td><td class="t"><span class="mark req">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">2</td>
+        <td class="item"><b>Context engineered</b><small><code>AGENTS.md</code>/<code>CLAUDE.md</code> + a static-vs-dynamic context map.</small></td>
+        <td class="t"><span class="mark rec">&#9682;</span></td><td class="t"><span class="mark req">&#9679;</span></td><td class="t"><span class="mark req">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">3</td>
+        <td class="item"><b>Harness configured</b><small>Tools/MCP defined + guardrails/hooks for dangerous ops.</small></td>
+        <td class="t"><span class="mark rec">&#9682;</span></td><td class="t"><span class="mark req">&#9679;</span></td><td class="t"><span class="mark req">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">4</td>
+        <td class="item"><b>Non-deterministic design <span class="star">*</span></b><small>Domain boundaries: what's typed/validated vs scored, + DDD invariants.</small></td>
+        <td class="t"><span class="mark no">&mdash;</span></td><td class="t"><span class="mark req">&#9679;</span><span class="star">*</span></td><td class="t"><span class="mark req">&#9679;</span><span class="star">*</span></td>
+      </tr>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">5</td>
+        <td class="item"><b>Tests &mdash; deterministic</b><small>TDD approach defined for the deterministic core.</small></td>
+        <td class="t"><span class="mark rec">&#9682;</span></td><td class="t"><span class="mark req">&#9679;</span></td><td class="t"><span class="mark req">&#9679;</span></td>
+      </tr>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">6</td>
+        <td class="item"><b>Evals <span class="star">*</span></b><small>Output (what it built) + trajectory (how it got there). Trajectory needs #7 to capture the trace.</small></td>
+        <td class="t"><span class="mark no">&mdash;</span></td><td class="t"><span class="mark rec">&#9682;</span><span class="star">*</span></td><td class="t"><span class="mark req">&#9679;</span><span class="star">*</span></td>
+      </tr>
+      <tr>
+        <td class="chk"><input type="checkbox"></td><td class="n">7</td>
+        <td class="item"><b>Observability wired</b><small>Traces + cost/latency + error tracking; + drift &amp; prod feedback at scale.</small></td>
+        <td class="t"><span class="mark no">&mdash;</span></td><td class="t"><span class="mark rec">&#9682;</span></td><td class="t"><span class="mark req">&#9679;</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="legend">
+    <span><span class="mark req">&#9679;</span> required</span>
+    <span><span class="mark rec">&#9682;</span> recommended</span>
+    <span><span class="mark no">&mdash;</span> not required</span>
+    <span><span class="star">*</span> only if the project has non-deterministic / LLM parts</span>
+  </div>
+
+  <div class="grid2">
+    <div class="box">
+      <h4>Two rules the gate never breaks</h4>
+      <ul>
+        <li><b>Stakes can pull one item up.</b> Any destructive/irreversible op (deletes, payments, prod writes) makes <b>guardrails required</b> &mdash; even in a prototype.</li>
+        <li><b>It never invents a requirement you don't have.</b> No LLM/fuzzy parts &rarr; rows 4 &amp; 6 drop off automatically. No nagging.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>Verdict</h4>
+      <div class="verdict">
+        <div class="v"><span class="dot go"></span><b>GO</b> &mdash; all required (&#9679;) items checked.</div>
+        <div class="v"><span class="dot gap"></span><b>GO-WITH-GAPS</b> &mdash; required met, recommended (&#9682;) gaps remain.</div>
+        <div class="v"><span class="dot stop"></span><b>NOT-READY</b> &mdash; a required (&#9679;) item is missing.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
