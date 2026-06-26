@@ -1,0 +1,19 @@
+# Context Map — {{PROJECT_NAME}}
+
+The static-vs-dynamic context plan. A first-class, versioned decision — review it like config.
+
+Legend: **Static** = always loaded (high token cost). **Dynamic** = loaded on demand (low per-turn cost).
+
+| Type | Item | Static / Dynamic | Location | Owner |
+|---|---|---|---|---|
+| Instructions | {{INSTRUCTIONS_ITEM}} | Static | AGENTS.md | context-engineering |
+| Knowledge | {{KNOWLEDGE_ITEM}} | Dynamic | {{KNOWLEDGE_PATH}} | context-engineering |
+| Memory (persistent) | {{MEMORY_PERSISTENT}} | Static | AGENTS.md | context-engineering |
+| Memory (session) | {{MEMORY_SESSION}} | Dynamic | session | context-engineering |
+| Examples | {{EXAMPLES_ITEM}} | Dynamic | {{EXAMPLES_PATH}} | context-engineering |
+| Tools | (deferred) | Dynamic | (deferred) | harness-setup |
+| Guardrails | (deferred) | Static | (deferred) | harness-setup |
+
+## Notes
+- When unsure, default to dynamic; promote to static only if needed every interaction.
+- The Tools & Guardrails rows are placeholders until `harness-setup` fills them.

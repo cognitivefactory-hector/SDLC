@@ -1,0 +1,28 @@
+# {{PROJECT_NAME}} — Agent Instructions
+
+> Canonical instructions for AI agents in this repo. Claude Code reads this via `CLAUDE.md`,
+> which imports it with `@AGENTS.md`.
+
+## Purpose
+{{ONE_PARAGRAPH_PURPOSE}}
+
+## Your role
+{{AGENT_ROLE}}
+
+## Hard boundaries (never do)
+{{BOUNDARIES_LIST}}
+
+## Conventions
+{{CONVENTIONS_LIST}}
+
+## Persistent project facts (static memory)
+{{PERSISTENT_FACTS}}
+
+## Knowledge — where to look (dynamic, load on demand)
+{{KNOWLEDGE_REFS}}
+
+## Examples / reference patterns (dynamic)
+{{EXAMPLE_REFS}}
+
+## Tools & Guardrails
+Configured by the `harness-setup` skill — see `docs/context-map.md` for the map.
